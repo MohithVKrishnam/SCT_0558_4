@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin: 20px 0;
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #todo-container {
+            margin: 20px auto;
+            width: 90%;
+            max-width: 600px;
+            background: #ffffffdd;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="text"], input[type="datetime-local"], select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button.add {
+            background: #28a745;
+            color: white;
+        }
+
+        button.edit {
+            background: #ffc107;
+            color: black;
+        }
+
+        button.delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        button.completed {
+            background: #007bff;
+            color: white;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background: #fff;
+            color: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        li.completed {
+            text-decoration: line-through;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .task-info {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .task-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .task-date, .task-priority {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .filter {
+            margin: 20px 0;
+        }
+
+        .filter select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>To-Do Web App</h1>
+    <div id="todo-container">
+        <input type="text" id="task-input" placeholder="Enter a new task">
+        <input type="datetime-local" id="task-date">
+        <select id="task-priority">
+            <option value="Low">Low Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="High">High Priority</option>
+        </select>
+        <button class="add" id="add-task-button">Add Task</button>
+        <div class="filter">
+            <label for="filter-priority">Filter by Priority:</label>
+            <select id="filter-priority">
+                <option value="All">All</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+            </select>
+        </div>
+        <ul id="task-list"></ul>
+    </div>
+    <footer>By Mohith</footer>
+
+    <script>
+        // Elements
+        const taskInput = document.getElementById('task-input');
+        const taskDate = document.getElementById('task-date');
+        const taskPriority = document.getElementById('task-priority');
+        const addTaskButton = document.getElementById('add-task-button');
+        const taskList = document.getElementById('task-list');
+        const filterPriority = document.getElementById('filter-priority');
+
+        // Task Array
+        let tasks = [];
+
+        // Add Task Function
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            const taskDueDate = taskDate.value;
+            const priority = taskPriority.value;
+
+            if (taskText === '') {
+                alert("Task cannot be empty!");
+                return;
+            }
+
+            const task = {
+                id: Date.now(),
+                text: taskText,
+                dueDate: taskDueDate,
+                priority,
+                completed: false
+            };
+
+            tasks.push(task);
+            renderTasks();
+
+            // Clear input fields
+            taskInput.value = '';
+            taskDate.value = '';
+            taskPriority.value = 'Low';
+        }
+
+        // Render Tasks Function
+        function renderTasks() {
+            taskList.innerHTML = '';
+            const filteredTasks = tasks.filter(task => 
+                filterPriority.value === 'All' || task.priority === filterPriority.value
+            );
+
+            filteredTasks.forEach(task => {
+                const li = document.createElement('li');
+                li.classList.toggle('completed', task.completed);
+
+                const taskInfo = document.createElement('div');
+                taskInfo.classList.add('task-info');
+                taskInfo.innerHTML = `
+                    <div>${task.text}</div>
+                    ${task.dueDate ? `<div class="task-date">Due: ${new Date(task.dueDate).toLocaleString()}</div>` : ''}
+                    <div class="task-priority">Priority: ${task.priority}</div>
+                `;
+
+                const taskButtons = document.createElement('div');
+                taskButtons.classList.add('task-buttons');
+
+                const completedButton = document.createElement('button');
+                completedButton.textContent = 'Completed';
+                completedButton.classList.add('completed');
+                completedButton.onclick = () => {
+                    task.completed = !task.completed;
+                    renderTasks();
+                };
+
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.classList.add('edit');
+                editButton.onclick = () => {
+                    const newTaskText = prompt('Edit Task', task.text);
+                    if (newTaskText) {
+                        task.text = newTaskText.trim();
+                        renderTasks();
+                    }
+                };
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete');
+                deleteButton.onclick = () => {
+                    tasks = tasks.filter(t => t.id !== task.id);
+                    renderTasks();
+                };
+
+                taskButtons.appendChild(completedButton);
+                taskButtons.appendChild(editButton);
+                taskButtons.appendChild(deleteButton);
+
+                li.appendChild(taskInfo);
+                li.appendChild(taskButtons);
+                taskList.appendChild(li);
+            });
+        }
+
+        // Filter Tasks Function
+        filterPriority.addEventListener('change', renderTasks);
+
+        // Add Task Event
+        addTaskButton.addEventListener('click', addTask);
+    </script>
+</body>
+</html>
